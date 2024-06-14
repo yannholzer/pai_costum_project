@@ -1,0 +1,9 @@
+['Number_of_planets' 'log_Total_planets_mass_(Mearth)']
+Number_of_planets
+rmse: 2.235298319222725
+mae: 1.5750605790971888
+mse: 4.996558575919939
+log_Total_planets_mass_(Mearth)
+rmse: 0.26339169631654674
+mae: 0.13989006636058782
+mse: 0.06937518568850798

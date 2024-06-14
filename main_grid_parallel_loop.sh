@@ -2,8 +2,16 @@
 set -e
 
 
-####################################################################################################
-# == PATH PARAMETERS ===============================================================================
+##
+###     This script is used to train and test the model on the given dataset.
+####    It uses the parallel command to run multiple jobs in parallel.
+###     It also loops the same training multiple time to get an average measurement of the performance.
+##
+
+
+#########################
+###  PATH PARAMETERS  ###
+#########################
 
 # THE ROOT PATH OF THE DATA
 DATA_PATH_ROOT="/home/yannh/Documents/uni/phd/classes/pai/costum_project/dataset/raw_standardized"
@@ -15,7 +23,7 @@ DATA_NAMES=(
     "J20_05MS"
     )
 
-# CHOSE THE ONE I WANT TO USE
+# CHOSE THE ONE I WANT TO USE (ONLY THE 1MS FOR THE PROJECT)
 DATA_NAME=${DATA_NAMES[0]}
 DATA_PATH="${DATA_PATH_ROOT}/${DATA_NAME}.csv"
 
@@ -26,16 +34,23 @@ PROCESSED_PATH_ROOT="/home/yannh/Documents/uni/phd/classes/pai/costum_project/da
 PROCESSED_PATH_DATA_NAME="${PROCESSED_PATH_ROOT}/${DATA_NAME}"
 
 
-####################################################################################################
-#== PATH TESTS ======================================================
+
+####################
+###  PATH TESTS  ###
+####################
+
 if ! test -d "${DATA_PATH_ROOT}"; then
     echo "Invalid data root path"
     echo "${DATA_PATH_ROOT}"
     exit 1
 fi
 
-####################################################################################################
-#== LABELS TYPE ======================================================
+
+
+#####################
+###  LABELS TYPE  ###
+#####################
+
 
 # THE LABELS TYPE
 LABELS_TYPE=(
@@ -49,29 +64,55 @@ LABEL_TYPE=${LABELS_TYPE[0]}
 # THE ROOT PATH OF THE PROCESSED DATA WITH THE DATA NAME AND LABELS TYPE SUBFOLDER
 PROCESSED_PATH="${PROCESSED_PATH_DATA_NAME}/${LABEL_TYPE}"
 
-####################################################################################################
-#== TRAINING PARAMETERS ======================================================
 
 
 
-N_LOOP=2
+
+
+
+
+
+
+
+#############################
+###  TRAINING PARAMETERS  ###
+#############################
+
+# the parameters in lists are used in the parallel command to loop over them (see example below)
+
+# EXAMPLE OF THE PARALLEL COMMAND
+
+#parallel echo {1} {2} ::: A B ::: 1 2
+
+# PRODUCE THE FOLLOWING OUTPUT 
+# A 1
+# A 2
+# B 1
+# B 2
+
+
+
+
+N_LOOP=10
 
 SEED=-1
 BATCH_SIZE=(32)
-EPOCHS=1000
+EPOCHS=100
 TRAIN_RATIO=0.77
 VALIDATION_RATIO=0.5
 DROPOUT=(0)
 BATCHNORM=0
-ELEMENTWISE=0
+ELEMENTWISE=0 # create a 1-to-1 linear connection at the start of the model
 
 
 
 
-HIDDEN_DIM=("32" "32,32" "32,32,32")
 
+#HIDDEN_DIM=("32" "32,32" "32,32,32" "32,32,32,32" "32,32,32,32,32" "32,32,32,32,32,32" "32,32,32,32,32,32,32" "32,32,32,32,32,32,32,32")
 #HIDDEN_DIM=("64" "64,64" "64,64,64" "64,64,64,64" "64,64,64,64,64" "64,64,64,64,64,64" "64,64,64,64,64,64,64" "64,64,64,64,64,64,64,64")
-LEARNING_RATE=(5e-5 1e-4 5e-4 1e-3 5e-3 1e-2 5e-2 1e-1)
+HIDDEN_DIM=("4,4,4" "8,8,8" "16,16,16" "32,32,32" "64,64,64" "128,128,128" "256,256,256" "512,512,512")
+#HIDDEN_DIM=("16" "16,16" "16,16,16" "32" "32,32" "32,32,32" "64" "64,64" "64,64,64" "128" "128,128" "128,128,128" "256" "256,256" "256,256,256" "512" "512,512" "512,512,512") 
+LEARNING_RATE=(1e-3)
 #LEARNING_RATE=(1e-4)
 
 
@@ -93,7 +134,7 @@ OPTIMIZERS=(
 )
 OPTIMIZER=${OPTIMIZERS[0]}
 
-TEST_NAME="final_lr_test"
+TEST_NAME="final_depth_test"
 
 
 
@@ -104,6 +145,12 @@ RESET_DATA=0
 RESET_TRAIN=1
 
 JOB_OUTPUT=out
+
+
+
+
+
+
 
 
 rm -rf ${JOB_OUTPUT}
@@ -148,7 +195,6 @@ echo "=========================================="
 echo "loop ${i}"
 echo "=========================================="
 
-#parallel -j ${N_CORE} echo {1} {2} {3}  ::: ${LEARNING_RATE[@]} ::: ${HIDDEN_DIM[@]} ::: ${MODEL[@]}
 
 # TRAIN THE MODEL
 echo "Training model"

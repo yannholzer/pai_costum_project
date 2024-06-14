@@ -288,13 +288,27 @@
     
     \subsubsection{Planet features}
     
-    The first step with the planets properties is to address the variable number of planets for different disk. As each disk does not necessarily produce the same number of planet, some collide, merge, or are ejected.  In addition to the variable number of planet, their occurrences are not orderer.  Hence the input is constant and ordered, as each disk possesses the same number of features, but the target are variable in size and non-ordered. \todo{two sol: model special or generalization of target}
+    The first step with the planets properties is to address the variable number of planets for different disk. As each disk does not necessarily produce the same number of planet, some collide, merge, or are ejected.  In addition to the variable number of planet, their occurrences are not orderer.  Hence the input is constant and ordered, as each disk possesses the same number of features, but the target are variable in size and non-ordered.  To solve this problem two approachs are possible; either creating a sophisticated model that could deal with theses complex target, or to simplify the target to use much common model.
     
+    Model-wise, it would need to be able to generate a dynamical number of planets, and the loss would need to be able to compare each predicted planet to the corresponding true target. There would be a lot of approach, such as the use of padding for the target, capping the number of planet to the maximum one, using Graph Neural Network to solve the ordering issue, or using a recurence system to make the model predict planet one by one, keeping information on the already predicted planet, training a diffusion model on the planets themselves with increasing noise and using the disk feature as a form of seed, etc.. However this task seemed complicated, thus the project will use the target-wise approach.
+    
+    The second approach would be to generalize the knowledge of the planetary system into fix and ordered information. To start simply, two generalisation of the system will be use:
+   
+    \begin{itemize}
+    	\setlength\itemsep{-.2em}
+    	\item \textit{The number of planet} in the system, calculated by simply counting the number of planet left after the disk evolutions.
+    	\item \textit{The total mass of the planets}, calculated by summing the mass of each planet present in the system.
+    	\item \todo{others if time}
+    \end{itemize}    
+   In that way, whatever the number of planets and their order, the generalisation is always constant and ordered. This allow to use much simpler model such as Neural Network.    
     
     
     \subsection{The models}
     
-    The model used 
+    Thanks to the generalisation of the planets informations ,the model used will a simple Neural Network.
+    
+    \todo{loss}
+    \todo{optim}
     
     \subsection{Important features}
     
@@ -303,22 +317,69 @@
     The first method is to use feature permutation. The model is normally trained on the data, then it is tested on a test dataset were the feature of the disks have been permuted \textit{between the disks}. Thus the model will have to predict the target based on disks that have have one of their feature exchanged with all the other disks. For each feature, the permutation is applied and then the performance are measured, and finally we can analyse which feature affected the performance the most, which should be the most important feature.
     
     The second method is to add linear layer at the beggining of the neural network that is connected in a 1-to-1 manner, each input connects to one neurone. Thus, this is possible to analyse the weight of this layer to see which input the model weighted the most as "most important".
+    
+        \subsection{Trainings and tests}
+        
+        \todo{say train val test etc}s
+    
+    
     \section{Results}
     
+   
     \subsection{Architecture and  parameters explorations}
-       
-    \subsubsection{lr test}
+ 	The results for that part have been produce by training the models multiple times with the same parameters \todo{say n time} to take an average of the performances
+    \subsubsection{Learning rates}
     
-    The first test to do is to see how the learning rate affects the efficiency of the model, as higher learning rate would allow to train the model for a shorter time. This test was done for 3 differents architectures with a learning rate going from 5e-5 to 1e-1
+    The first test to do is to see how the learning rate affects the efficiency of the models, as higher learning rate would allow to train the model for a shorter time. This test was done for 3 different numbers of hidden layer, having each 32 neurones, with a learning rate going from $5\cdot10^{-5}$ to $1\cdot10^{-1}$ with a log-scaled step of $5\cdot10^{0}$.
+    \begin{figure}[H]
+    	\begin{minipage}[t]{.48\linewidth}
+    		\centering 
+    		\includegraphics[width=1\textwidth]{images/final_lr_test_scatter.png}
+    		\caption{Results of the performances of the models on the test dataset as a function of the learning rate}
+    		\label{fig:lr_test_scatter}
+    	\end{minipage}
+    	\hfill
+    	\begin{minipage}[t]{.48\linewidth}
+    		\centering 
+    		\includegraphics[width=1\textwidth]{images/final_lr_test.png}
+    		\caption{Same plot as the left one, with error bar showing the deviation of the performance from the mean.}
+    		\label{fig:lr_test}
+    	\end{minipage}
+    \end{figure}
+    Figure \ref{fig:lr_test_scatter} shows the Root Mean Squared Error (RMSE) of the model on the test dataset as a function of the learning rate of the training. The figure \ref{fig:lr_test} is the same plot, with the scattering of the plot showed with errorbar, while the point shows the mean. The model were trained for 1000 epochs. 
+    We see that for a learning rate of $10^{-3}$, the performances do not increase so much anymore, thus we will use that learning rate for the rest of tests. In addition, looking at the loss on figure  \ref{fig:lr_test_loss} for the lowest training with a learning rate of $5\cdot10^{-5}$, the loss already converge at 100 epochs, thus we will also use that epoch as maximum training epoch.
+        \begin{figure}[H]                                           
+    	\centering \includegraphics[width=0.5\textwidth]{images/final_lr_test_loss.png}
+    	\caption{Train and validation loss of a model with two hidden layer of 32 neurones each, with a learning rate of $5\cdot10^{-5}$.}
+    	\label{fig:lr_test_loss}
+    \end{figure}
     
-    \subsubsection{batchsize test}
     
     
-    \subsubsection{deep test}
     
-    \subsubsection{depth test}
+    \subsubsection{batch sizes}
+    We then test the batchsize as bigger batch allows the training to go faster, for the same model used in the previous text, with a learning rate of  $10^{-3}$ and 100 epochs.
+     \begin{figure}[H]                                           
+    	\centering \includegraphics[width=0.6\textwidth]{images/batch_size_test.png}
+    	\caption{Performances of the models as a function of the batchsize.}
+    	\label{fig:batchsize_test}
+    \end{figure}
+    Figure \ref{fig:batchsize_test} shows that too big batchsize actually decrease the performance of the models. The decrease of performance being negligible below a batchsize of 64, we will use a batchsize of 32 for the rest of the tests.
     
+    \subsubsection{Number of layers}
+    We will now test the number of layer. The test are done for 100 epochs,  a learning rate of $10^{-3}$  and a batchsize of 32. The number of tested layer goes between 1 and 8, for neural layers of 32 and 64 neurones (i.e ([32], [32,32], [32,32,32],..)  and ([64], [64,64], [64,64,64], ..)).
+	\begin{figure}[H]                                           
+    	\centering \includegraphics[width=0.6\textwidth]{images/ndim_test.png}
+    	\caption{Performances of the models as a function of the number of layers.}
+    	\label{fig:ndim_test}
+	\end{figure}
+	Figure \ref{fig:ndim_test} shows that there is a great increase of performances going from 1 to 2 layers, but above 3 layers, the performance are not significantly increasing anymore. Thus we will use 3 layers, as the increase of computation time is not worth the increase of performance in that case. We note that the tendency were the same for the layers with 32 and 64 neurones, thus they are shown on the same plot.
     
+    \subsubsection{Number  of neurones per layers}
+    We will now test different number of neurones per layers. 
+    
+   
+   	\subsubsection{grid sanity test}
     
     \subsection{Feature importances}
     
