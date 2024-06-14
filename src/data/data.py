@@ -66,7 +66,7 @@ def get_dataframe_from_folder(data_path:str) -> pd.DataFrame:
     return dataframe
 
 
-def get_disk_dataframe(df:pd.DataFrame, drop_duplicate=True) -> pd.DataFrame:
+def get_disk_dataframe(df:pd.DataFrame, drop_duplicate=True, drop_system_number=True) -> pd.DataFrame:
     """Take the dataframe and return a dataframe containing the disk properties.
 
     Parameters
@@ -83,14 +83,40 @@ def get_disk_dataframe(df:pd.DataFrame, drop_duplicate=True) -> pd.DataFrame:
         
     # hardcoded columns names of the planets and disk properties
     if drop_duplicate:
-        dataframe_disk_propriety = df.drop_duplicates(subset='System number').drop(columns=PLANETS_COLUMNS).drop(columns="System number").reset_index(drop=True)
+        dataframe_disk_propriety = df.drop_duplicates(subset='System number').drop(columns=PLANETS_COLUMNS).reset_index(drop=True)
     else:
-        dataframe_disk_propriety = df.drop(columns=PLANETS_COLUMNS).drop(columns="System number").reset_index(drop=True)
+        dataframe_disk_propriety = df.drop(columns=PLANETS_COLUMNS).reset_index(drop=True)
+        
+    if drop_system_number:
+        dataframe_disk_propriety = dataframe_disk_propriety.drop(columns="System number")
     
     
     
     return dataframe_disk_propriety
 
+
+def get_planets_dataframe(df:pd.DataFrame, drop_duplicate=True) -> pd.DataFrame:
+    """Take the dataframe and return the planets properties.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        The dataframe containing the disk and planets properties
+
+    Returns
+    -------
+    pd.DataFrame
+        Return the planets properties.
+    """
+    
+        
+    # hardcoded columns names of the planets and disk properties
+    
+   
+    dataframe_planets_propriety = df.drop(columns=DISK_COLUMNS).reset_index(drop=True)
+    
+    
+    return dataframe_planets_propriety
 
 
 def get_disk_planets_dataframe(df:pd.DataFrame, drop_duplicate=True) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -135,10 +161,10 @@ def get_planet_counts(df:pd.DataFrame) -> pd.DataFrame:
     pd.DataFrame
         return the number of planets in each system.
     """
+    planet_counts_name = "Number_of_planets"
+    planet_counts = df.groupby("System number").size().reset_index(drop=True).to_frame().rename(columns={0: planet_counts_name})
     
-    planet_counts = df.groupby("System number").size().reset_index(drop=True).to_frame().rename(columns={0: "Number of planets"})
-    
-    return planet_counts
+    return planet_counts, planet_counts_name
 
 
 def get_total_planets_mass(df:pd.DataFrame) -> pd.DataFrame:
@@ -154,10 +180,10 @@ def get_total_planets_mass(df:pd.DataFrame) -> pd.DataFrame:
     pd.DataFrame
         return the total mass of the planets in each system.
     """
+    total_mass_name = "Total_planets_mass_(Mearth)"
+    total_mass = df.groupby("System number")["Total Mass (Mearth)"].sum().reset_index(drop=True).to_frame().rename(columns={"Total Mass (Mearth)": total_mass_name})
     
-    total_mass = df.groupby("System number")["Total Mass (Mearth)"].sum().reset_index(drop=True).to_frame().rename(columns={"Total Mass (Mearth)": "Total planets mass (Mearth)"})
-    
-    return total_mass
+    return total_mass, total_mass_name
 
 
 def join_dataframe(df1:Union[None, pd.DataFrame], df2:pd.DataFrame) -> pd.DataFrame:

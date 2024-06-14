@@ -1,3 +1,4 @@
 *cpython
 *.csv
 *.npy
+*.yaml

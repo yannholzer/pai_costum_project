@@ -50,13 +50,13 @@ PROCESSED_PATH="${PROCESSED_PATH_DATA_NAME}/${LABELS_TYPE}"
 #== TRAINING PARAMETERS ======================================================
 
 SEED=42
-LEARNING_RATE=1e-4
+LEARNING_RATE=1e-5
 BATCH_SIZE=32
-EPOCHS=10
+EPOCHS=5000
 TRAIN_RATIO=0.77
 VALIDATION_RATIO=0.77
 
-HIDDEN_DIM="64,32,16"
+HIDDEN_DIM="128,128,128"
 
 MODELS=(
     "NeuralNetvGenerator"
@@ -79,7 +79,7 @@ OPTIMIZER=${OPTIMIZERS[0]}
 
 
 # PROCESS THE DATA IF NOT ALREADY #typo on purpose for reseting during debugging
-if ! [ -f "${PROCESSED_PATH}/train_data.np" ]; then
+if ! [ -f "${PROCESSED_PATH}/train_data.npy" ]; then
     echo "Processing data"
     python3 src/data/processing.py --data_path "${DATA_PATH}" --processed_path "${PROCESSED_PATH}" --labels_type "${LABELS_TYPE}" --seed "${SEED}"
 else

@@ -31,7 +31,6 @@ def get_processing_args() -> argparse.Namespace:
         help="Where to save the processed dataset",
     )
 
-    # Arguments for the network
     parser.add_argument(
         "--labels_type",
         type=str,
@@ -44,75 +43,6 @@ def get_processing_args() -> argparse.Namespace:
         type=int,
         default=None,
         help="The seed for the random split",
-    )
-   
-    # This now collects all arguments
-    args = parser.parse_args()
-
-    # Now we return the arguments
-    return args
-
-
-def get_training_args() -> argparse.Namespace:
-    """Get the arguments needed for the training script."""
-    parser = argparse.ArgumentParser()
-
-    # Define the important paths for the project
-    parser.add_argument(
-        "--processed_path",  # How we access the argument when calling `python train.py ...`
-        type=str,  # We must also define the type of argument, here it is a string
-        default="/home/yannh/Documents/uni/phd/classes/pai/costum_project/dataset/raw_standardized/J20_1MS.csv",  # The default value so you dont have to type it in every time
-        help="Where is saved the raw dataset",  # A helpfull message
-    )
-    
-    parser.add_argument(
-        "--model",
-        type=str,
-        default=None,
-        help="The model to use",
-    )
-    
-    parser.add_argument(
-        "--hidden_dim",
-        type=str,
-        default="64",
-        help="The model hidden dimensions",
-    )
-    
-    parser.add_argument(
-        "--loss_fn",
-        type=str,
-        default="MSE",
-        help="The loss to use",
-    )
-    
-    parser.add_argument(
-        "--optimizer",
-        type=str,
-        default="Adam",
-        help="The optimizer to use",
-    )
-    
-    parser.add_argument(
-        "--seed",
-        type=int,
-        default=None,
-        help="The random seed",
-    )
-
-    # Arguments for the network
-    parser.add_argument(
-        "--learning_rate", "--lr",
-        type=float,
-        default=1e-4,
-        help="The learning rate of the model",
-    )
-    
-    parser.add_argument(
-        "--epochs",
-        type=int,
-        default=100,
-        help="The number of epoch to train the model",
     )
     
     parser.add_argument(
@@ -129,24 +59,19 @@ def get_training_args() -> argparse.Namespace:
         help="The validation/test ratio",
     )
     
-    parser.add_argument(
-        "--batch_size",
-        type=int,
-        default=64,
-        help="The batch size",
-    )
-   
+    
    
     # This now collects all arguments
-
     args = parser.parse_args()
-    args.hidden_dim = [int(h) for h in args.hidden_dim.split(",")]
 
+    if args.seed == -1:
+        args.seed = None
+        
     # Now we return the arguments
     return args
 
 
-def get_testing_args() -> argparse.Namespace:
+def get_traintest_args() -> argparse.Namespace:
     """Get the arguments needed for the training script."""
     parser = argparse.ArgumentParser()
 
@@ -156,6 +81,13 @@ def get_testing_args() -> argparse.Namespace:
         type=str,  # We must also define the type of argument, here it is a string
         default="/home/yannh/Documents/uni/phd/classes/pai/costum_project/dataset/raw_standardized/J20_1MS.csv",  # The default value so you dont have to type it in every time
         help="Where is saved the raw dataset",  # A helpfull message
+    )
+    
+    parser.add_argument(
+        "--labels_type",
+        type=str,
+        default=None,
+        help="The type of labels",
     )
     
     parser.add_argument(
@@ -193,7 +125,6 @@ def get_testing_args() -> argparse.Namespace:
         help="The random seed",
     )
 
-    # Arguments for the network
     parser.add_argument(
         "--learning_rate", "--lr",
         type=float,
@@ -207,18 +138,59 @@ def get_testing_args() -> argparse.Namespace:
         default=100,
         help="The number of epoch to train the model",
     )
-
+    
     parser.add_argument(
         "--batch_size",
         type=int,
         default=64,
         help="The batch size",
     )
+    
+    parser.add_argument(
+        "--dropout",
+        type=float,
+        default=None,
+        help="The dropout ratio",
+    )
+    
+    parser.add_argument(
+        "--batchnorm",
+        type=int,
+        default=False,
+        help="batchnorm boolean",
+    )
+    
+    parser.add_argument(
+        "--reset",
+        type=int,
+        default=None,
+        help="reset the training",
+    )
+    
+    parser.add_argument(
+        "--test_name",
+        type=str,
+        default=None,
+        help="The name of the test",
+    )
+    
+    parser.add_argument(
+        "--elementwise",
+        type=int,
+        default=0,
+        help="Add element wise input for weight importance",
+    )
+
    
    
     # This now collects all arguments
+
     args = parser.parse_args()
     args.hidden_dim = [int(h) for h in args.hidden_dim.split(",")]
+    args.reset = args.reset == 1
+    args.batchnorm = args.batchnorm == 1
+    args.elementwise = args.elementwise == 1
 
     # Now we return the arguments
     return args
+
